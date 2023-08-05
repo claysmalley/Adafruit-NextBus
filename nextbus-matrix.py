@@ -2,14 +2,14 @@
 # Requires rgbmatrix.so library: github.com/adafruit/rpi-rgb-led-matrix
 
 import atexit
-import Image
-import ImageDraw
-import ImageFont
+from PIL import Image
+from PIL import ImageDraw
+from PIL import ImageFont
 import math
 import os
 import time
 from predict import predict
-from rgbmatrix import Adafruit_RGBmatrix
+from rgbmatrix import RGBMatrix
 
 # Configurable stuff ---------------------------------------------------------
 
@@ -29,7 +29,7 @@ midTime        = 10  # Times less than this are displayed yellow
 
 width          = 64  # Matrix size (pixels) -- change for different matrix
 height         = 32  # types (incl. tiling).  Other code may need tweaks.
-matrix         = Adafruit_RGBmatrix(32, 2) # rows, chain length
+matrix         = RGBMatrix(32, 2) # rows, chain length
 fps            = 20  # Scrolling speed (ish)
 
 routeColor     = (255, 255, 255) # Color for route labels (usu. numbers)
@@ -141,8 +141,8 @@ if tileWidth >= width: tilesAcross = 2
 else:                  tilesAcross = int(math.ceil(width / tileWidth)) + 1
 
 nextPrediction = 0  # Index of predictList item to attach to tile
-for x in xrange(tilesAcross):
-	for y in xrange(0, 2):
+for x in range(tilesAcross):
+	for y in range(0, 2):
 		tileList.append(tile(x * tileWidth + y * tileWidth / 2, 
 		  y * 17, predictList[nextPrediction]))
 		nextPrediction += 1
@@ -177,4 +177,4 @@ while True:
 	prevTime = currentTime
 
 	# Offscreen buffer is copied to screen
-	matrix.SetImage(image.im.id, 0, 0)
+	matrix.SetImage(image, 0, 0)

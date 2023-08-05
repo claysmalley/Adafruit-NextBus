@@ -26,15 +26,15 @@ while True:
 	currentTime = time.time()
 	print
 	for pl in predictList:
-		print pl.data[1] + ' ' + pl.data[3] + ':'
+		print(pl.data[1] + ' ' + pl.data[3] + ':')
 		if pl.predictions: # List of arrival times, in seconds
 			for p in pl.predictions:
 				# Extrapolate from predicted arrival time,
 				# current time and time of last query,
 				# display in whole minutes.
 				t = p - (currentTime - pl.lastQueryTime)
-				print '\t' + str(int(t/60)) + ' minutes'
+				print('\t' + str(int(t/60)) + ' minutes')
 		else:
-			print '\tNo predictions'
+			print('\tNo predictions')
 	prevTime = currentTime;
 	time.sleep(5) # Refresh every ~5 seconds
