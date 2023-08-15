@@ -14,8 +14,8 @@ from rgbmatrix import RGBMatrix
 # Configurable stuff ---------------------------------------------------------
 
 nws_region = 'RAH'
-gridpoint_lat = 75
-gridpoint_lon = 57
+gridpoint_lat = '75'
+gridpoint_lon = '57'
 
 width          = 64  # Matrix size (pixels) -- change for different matrix
 height         = 32  # types (incl. tiling).  Other code may need tweaks.
@@ -23,12 +23,21 @@ matrix         = RGBMatrix(32, 2) # rows, chain length
 fps            = 20  # Scrolling speed (ish)
 
 labelColor     = (255, 255, 255)
+nightColor     = (255, 0, 0)
+temp30Color = (214, 113, 217)
+temp40Color = (140, 54, 186)
+temp50Color = (50, 40, 151)
+temp60Color = (5, 189, 230)
+temp70Color = (1, 210, 100)
+temp80Color = (120, 208, 3)
+temp90Color = (255, 250, 0)
+temp100Color = (255, 110, 0)
 
 # TrueType fonts are a bit too much for the Pi to handle -- slow updates and
 # it's hard to get them looking good at small sizes.  A small bitmap version
 # of Helvetica Regular taken from X11R6 standard distribution works well:
 font           = ImageFont.load(os.path.dirname(os.path.realpath(__file__))
-                   + '/helvR08.pil')
+	+ '/helvR08.pil')
 fontYoffset    = -2  # Scoot up a couple lines so descenders aren't cropped
 
 
@@ -47,91 +56,85 @@ def clearOnExit():
 
 atexit.register(clearOnExit)
 
-# Populate a list of predict objects (from predict.py) from stops[].
-# While at it, also determine the widest tile width -- the labels
-# accompanying each prediction.  The way this is written, they're all the
-# same width, whatever the maximum is we figure here.
-tileWidth = font.getsize(
-  '88' *  maxPredictions    +          # 2 digits for minutes
-  ', ' * (maxPredictions-1) +          # comma+space between times
-  ' minutes')[0]                       # 1 space + 'minutes' at end
-w = font.getsize('No Predictions')[0]  # Label when no times are available
-if w > tileWidth:                      # If that's wider than the route
-	tileWidth = w                  # description, use as tile width.
-predictList = []                       # Clear list
-for s in stops:                        # For each item in stops[] list...
-	predictList.append(predict(s)) # Create object, add to predictList[]
-	w = font.getsize(s[1] + ' ' + s[3])[0] # Route label
-	if(w > tileWidth):                     # If widest yet,
-		tileWidth = w                  # keep it
-tileWidth += 6                         # Allow extra space between tiles
+def celsiusToFahrenheit(temperature):
+	return round(temperature * 9 / 5 + 32)
 
+def colorFromFahrenheit(temperature):
+	if temperature is None:
+		return labelColor
+	color = temp30Color
+	colorSwitch = min(10, temperature // 10)
+	if colorSwitch == 4:
+		color = temp40Color
+	elif colorSwitch == 5:
+		color = temp50Color
+	elif colorSwitch == 6:
+		color = temp60Color
+	elif colorSwitch == 7:
+		color = temp70Color
+	elif colorSwitch == 8:
+		color = temp80Color
+	elif colorSwitch == 9:
+		color = temp90Color
+	elif colorSwitch == 10:
+		color = temp100Color
+	return color
 
 class tile:
-	def __init__(self, x, y, p):
+	def __init__(self, x, y, text, color):
 		self.x = x
 		self.y = y
-		self.p = p  # Corresponding predictList[] object
+		self.setText(text)
+		self.color = color
+
+	def setText(self, text):
+		self.text = text
 
 	def draw(self):
 		x     = self.x
-		label = self.p.data[1] + ' ' # Route number or code
+		label = str(self.text)
 		draw.text((x, self.y + fontYoffset), label, font=font,
-		  fill=routeColor)
-		x    += font.getsize(label)[0]
-		label = self.p.data[3]       # Route direction/desc
-		draw.text((x, self.y + fontYoffset), label, font=font,
-		  fill=descColor)
-		x     = self.x
-		if self.p.predictions == []: # No predictions to display
-			draw.text((x, self.y + fontYoffset + 8),
-			  'No Predictions', font=font, fill=noTimesColor)
+			fill=self.color)
+
+class temperatureTile(tile):
+	def __init__(self, x, y, temperature):
+		self.setText(temperature)
+		super().__init__(x, y, temperature, self.color)
+
+	def setText(self, temperature):
+		self.color = colorFromFahrenheit(temperature)
+		if temperature is None:
+			self.text = '??'
 		else:
-			isFirstShown = True
-			count        = 0
-			for p in self.p.predictions:
-				t = p - (currentTime - self.p.lastQueryTime)
-				m = int(t / 60)
-				if   m <= minTime:   continue
-				elif m <= shortTime: fill=shortTimeColor
-				elif m <= midTime:   fill=midTimeColor
-				else:                fill=longTimeColor
-				if isFirstShown:
-					isFirstShown = False
-				else:
-					label = ', '
-					# The comma between times needs to
-					# be drawn in a goofball position
-					# so it's not cropped off bottom.
-					draw.text((x + 1,
-					  self.y + fontYoffset + 8 - 2),
-					  label, font=font, fill=minsColor)
-					x += font.getsize(label)[0]
-				label  = str(m)
-				draw.text((x, self.y + fontYoffset + 8),
-				  label, font=font, fill=fill)
-				x     += font.getsize(label)[0]
-				count += 1
-				if count >= maxPredictions:
-					break
-			if count > 0:
-				draw.text((x, self.y + fontYoffset + 8),
-				  ' minutes', font=font, fill=minsColor)
+			self.text = temperature
 
+class temperatureForecastTile(temperatureTile):
+	def __init__(self, x, y, weatherInfo, period=0):
+		self.weatherInfo = weatherInfo
+		self.period = period
+		super().__init__(x, y, None)
+	
+	def update(self):
+		if self.weatherInfo.forecast is None:
+			self.setText(None)
+		else:
+			self.setText(
+				weatherInfo.forecast['properties']['periods'][self.period]['temperature']
+				)
 
-# Allocate list of tile objects, enough to cover screen while scrolling
-tileList = []
-if tileWidth >= width: tilesAcross = 2
-else:                  tilesAcross = int(math.ceil(width / tileWidth)) + 1
+	def draw(self):
+		self.update()
+		x     = self.x
+		label = str(self.text)
+		draw.text((x, self.y + fontYoffset), label, font=font,
+			fill=self.color)
 
-nextPrediction = 0  # Index of predictList item to attach to tile
-for x in range(tilesAcross):
-	for y in range(0, 2):
-		tileList.append(tile(x * tileWidth + y * tileWidth / 2, 
-		  y * 17, predictList[nextPrediction]))
-		nextPrediction += 1
-		if nextPrediction >= len(predictList):
-			nextPrediction = 0
+weatherInfo = weather((nws_region, gridpoint_lat, gridpoint_lon))
+tileList = [
+	temperatureForecastTile(0, 0, weatherInfo, 0),
+	temperatureForecastTile(24, 0, weatherInfo, 1),
+	temperatureForecastTile(48, 0, weatherInfo, 2)
+	]
 
 # Initialization done; loop forever ------------------------------------------
 while True:
@@ -142,13 +145,6 @@ while True:
 	for t in tileList:
 		if t.x < width:        # Draw tile if onscreen
 			t.draw()
-		t.x -= 1               # Move left 1 pixel
-		if(t.x <= -tileWidth): # Off left edge?
-			t.x += tileWidth * tilesAcross     # Move off right &
-			t.p  = predictList[nextPrediction] # assign prediction
-			nextPrediction += 1                # Cycle predictions
-			if nextPrediction >= len(predictList):
-				nextPrediction = 0
 
 	# Try to keep timing uniform-ish; rather than sleeping a fixed time,
 	# interval since last frame is calculated, the gap time between this

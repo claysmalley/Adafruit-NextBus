@@ -1,69 +1,111 @@
 import threading
 import time
-import urllib
-import json
+import requests
 
 class weather:
-	interval  = 120 # Default polling interval = 2 minutes
-	initSleep = 0   # Stagger polling threads to avoid load spikes
+	interval = 120 # Default polling interval = 2 minutes
+	initSleep = 0 # Stagger polling threads to avoid load spikes
 
-    # object initializer. 1 parameter, a 3-element tuple:
-    # 1. a National Weather Service region code, 3 letters
-    # 2. the gridpoint latitude
-    # 3. the gridpoint longitude
+	# object initializer. 1 parameter, a 3-element tuple:
+	# 1. a National Weather Service region code, 3 letters
+	# 2. the gridpoint latitude
+	# 3. the gridpoint longitude
 	# Each object spawns its own thread and will perform
 	# periodic server queries in the background, which can then be
-	# read via the forecast[] list.
+	# read via the weather, forecast and hourly properties.
 	def __init__(self, data):
-		self.data          = data
-		self.weather   = None
-		self.forecast   = None
-		self.hourly   = None
+		self.data = data
+		self.weather = None
+		self.forecast = None
+		self.hourly = None
 		self.lastQueryTime = time.time()
-		t                  = threading.Thread(target=self.thread)
-		t.daemon           = True
+		t = threading.Thread(target=self.thread)
+		t.daemon = True
 		t.start()
 
 	# Periodically get forecast from server
 	def thread(self):
-		initSleep          = weather.initSleep
-		weather.initSleep += 5   # Thread staggering may
-		time.sleep(initSleep)    # drift over time, no problem
+		initSleep = weather.initSleep
+		weather.initSleep += 5 # Thread staggering may
+		time.sleep(initSleep) # drift over time, no problem
 		while True:
-			json_result = weather.req(data)
-			if json_result['weather'] is None: return    # Connection error
-			if json_result['forecast'] is None: return   # Connection error
-			if json_result['hourly'] is None: return     # Connection error
+			weather_result = weather.req_weather(self.data)
+			if weather_result is None: return # Connection error
+			self.weather = weather_result
+
+			forecast_result = weather.req_forecast(self.data)
+			if forecast_result is None: return # Connection error
+			self.forecast = forecast_result
+
+			hourly_result = weather.req_hourly(self.data)
+			if hourly_result is None: return # Connection error
+			self.hourly = hourly_result
+
 			self.lastQueryTime = time.time()
-			self.weather = json_result['weather']
-			self.forecast = json_result['forecast']
-			self.hourly = json_result['hourly']
 			time.sleep(weather.interval)
 
-	# Open URL, send request, read & parse JSON response
 	@staticmethod
-	def req(data):
-        json_result = {'weather': None, 'forecast': None, 'hourly': None}
+	def req_weather(data):
+		json_result = None
+		url = ''.join((
+		 'https://api.weather.gov/gridpoints/',
+		 data[0],
+		 '/',
+		 data[1],
+		 ',',
+		 data[2]
+		 ))
+		print(''.join((url, ': Requesting...')))
 		try:
-			connection = urllib.urlopen(
-			  'https://api.weather.gov/gridpoints/' + data[0] + '/' + data[1] + ',' + data[2])
-			raw = connection.read()
-			connection.close()
-			json_result['weather'] = json.loads(raw)
+			connection = requests.get(url)
+			print(''.join((url, ': Success')))
+			json_result = connection.json()
+		except:
+			print(''.join((url, ': Failure')))
+		finally:
+			return json_result
 
-			time.sleep(5)
-			connection = urllib.urlopen(
-			  'https://api.weather.gov/gridpoints/' + data[0] + '/' + data[1] + ',' + data[2] + '/forecast')
-			raw = connection.read()
-			connection.close()
-			json_result['forecast'] = json.loads(raw)
+	@staticmethod
+	def req_forecast(data):
+		json_result = None
+		url = ''.join((
+		 'https://api.weather.gov/gridpoints/',
+		 data[0],
+		 '/',
+		 data[1],
+		 ',',
+		 data[2],
+		 '/forecast'
+		 ))
+		print(''.join((url, ': Requesting...')))
+		try:
+			connection = requests.get(url)
+			print(''.join((url, ': Success')))
+			json_result = connection.json()
+		except:
+			print(''.join((url, ': Failure')))
+		finally:
+			return json_result
 
-			time.sleep(5)
-			connection = urllib.urlopen(
-			  'https://api.weather.gov/gridpoints/' + data[0] + '/' + data[1] + ',' + data[2] + '/forecast/hourly')
-			raw = connection.read()
-			connection.close()
-			json_result['hourly'] = json.loads(raw)
+	@staticmethod
+	def req_hourly(data):
+		json_result = None
+		url = ''.join((
+		 'https://api.weather.gov/gridpoints/',
+		 data[0],
+		 '/',
+		 data[1],
+		 ',',
+		 data[2],
+		 '/forecast/hourly'
+		 ))
+		print(''.join((url, ': Requesting...')))
+		try:
+			connection = requests.get(url)
+			print(''.join((url, ': Success')))
+			json_result = connection.json()
+		except:
+			print(''.join((url, ': Failure')))
 		finally:
 			return json_result
 
