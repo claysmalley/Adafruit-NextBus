@@ -24,7 +24,7 @@ height         = 32  # types (incl. tiling).  Other code may need tweaks.
 matrix         = RGBMatrix(32, 2) # rows, chain length
 fps            = 20  # Scrolling speed (ish)
 
-labelColor     = (255, 255, 255)
+labelColor     = (127, 127, 127)
 nightColor     = (100, 0, 0)
 temp30Color = (214, 113, 217)
 temp40Color = (50, 40, 251)
@@ -86,7 +86,7 @@ def colorFromFahrenheit(temperature):
 	return color
 
 class tile:
-	def __init__(self, x, y, text, color):
+	def __init__(self, x, y, text, color=labelColor):
 		self.x = x
 		self.y = y
 		self.setText(text)
@@ -135,9 +135,12 @@ class temperatureForecastTile(temperatureTile):
 weatherInfo = weather((nws_region, gridpoint_lat, gridpoint_lon))
 
 tileList = [
-	temperatureForecastTile(0, 0, weatherInfo, 0),
-	temperatureForecastTile(24, 0, weatherInfo, 1),
-	temperatureForecastTile(48, 0, weatherInfo, 2),
+	tile(0, 0, 'H'),
+	tile(7, 0, '-'),
+	tile(8, 0, 'L '),
+	temperatureForecastTile(19, 0, weatherInfo, 0),
+	temperatureForecastTile(34, 0, weatherInfo, 1),
+	temperatureForecastTile(49, 0, weatherInfo, 2),
 	]
 
 # tileList = [
