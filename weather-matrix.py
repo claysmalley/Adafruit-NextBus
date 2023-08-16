@@ -96,7 +96,10 @@ class tile:
 		pass
 
 	def setText(self, text):
-		self.text = text
+		if text is None:
+			self.text = '??'
+		else:
+			self.text = text
 
 	def draw(self):
 		self.update()
@@ -105,6 +108,20 @@ class tile:
 		color = nightColor if nightMode else self.color
 		draw.text((x, self.y + fontYoffset), label, font=font,
 			fill=color)
+
+class humidityForecastTile(tile):
+	def __init__(self, x, y, weatherInfo, color=labelColor, period=0):
+		self.weatherInfo = weatherInfo
+		self.period = period
+		super().__init__(x, y, None, color)
+
+	def update(self):
+		if self.weatherInfo.forecast is None:
+			self.setText(None)
+		else:
+			self.setText(
+				self.weatherInfo.forecast['properties']['periods'][self.period]['relativeHumidity']['value']
+				)
 
 class temperatureTile(tile):
 	def __init__(self, x, y, temperature):
@@ -115,8 +132,10 @@ class temperatureTile(tile):
 		self.color = colorFromFahrenheit(temperature)
 		if temperature is None:
 			self.text = '??'
-		else:
+		elif temperature >= 100:
 			self.text = temperature
+		else:
+			self.text = ''.join((str(temperature), '° '))
 
 class temperatureForecastTile(temperatureTile):
 	def __init__(self, x, y, weatherInfo, period=0):
@@ -129,18 +148,20 @@ class temperatureForecastTile(temperatureTile):
 			self.setText(None)
 		else:
 			self.setText(
-				weatherInfo.forecast['properties']['periods'][self.period]['temperature']
+				self.weatherInfo.forecast['properties']['periods'][self.period]['temperature']
 				)
 
 weatherInfo = weather((nws_region, gridpoint_lat, gridpoint_lon))
 
 tileList = [
-	tile(0, 0, 'H'),
-	tile(7, 0, '-'),
-	tile(8, 0, 'L '),
+	tile(0, 0, 'T'),
 	temperatureForecastTile(19, 0, weatherInfo, 0),
 	temperatureForecastTile(34, 0, weatherInfo, 1),
 	temperatureForecastTile(49, 0, weatherInfo, 2),
+	tile(0, 8, 'RH'),
+	humidityForecastTile(19, 8, weatherInfo, period = 0),
+	humidityForecastTile(34, 8, weatherInfo, period = 1),
+	humidityForecastTile(49, 8, weatherInfo, period = 2),
 	]
 
 # tileList = [
