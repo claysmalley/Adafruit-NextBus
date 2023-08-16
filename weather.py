@@ -55,13 +55,9 @@ class weather:
 		 ',',
 		 data[2]
 		 ))
-		print(''.join((url, ': Requesting...')))
 		try:
 			connection = requests.get(url)
-			print(''.join((url, ': Success')))
 			json_result = connection.json()
-		except:
-			print(''.join((url, ': Failure')))
 		finally:
 			return json_result
 
@@ -77,13 +73,9 @@ class weather:
 		 data[2],
 		 '/forecast'
 		 ))
-		print(''.join((url, ': Requesting...')))
 		try:
 			connection = requests.get(url)
-			print(''.join((url, ': Success')))
 			json_result = connection.json()
-		except:
-			print(''.join((url, ': Failure')))
 		finally:
 			return json_result
 
@@ -99,13 +91,9 @@ class weather:
 		 data[2],
 		 '/forecast/hourly'
 		 ))
-		print(''.join((url, ': Requesting...')))
 		try:
 			connection = requests.get(url)
-			print(''.join((url, ': Success')))
 			json_result = connection.json()
-		except:
-			print(''.join((url, ': Failure')))
 		finally:
 			return json_result
 

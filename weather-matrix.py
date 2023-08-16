@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # NextBus scrolling marquee display for Adafruit RGB LED matrix (64x32).
 # Requires rgbmatrix.so library: github.com/adafruit/rpi-rgb-led-matrix
 
@@ -23,15 +25,15 @@ matrix         = RGBMatrix(32, 2) # rows, chain length
 fps            = 20  # Scrolling speed (ish)
 
 labelColor     = (255, 255, 255)
-nightColor     = (255, 0, 0)
+nightColor     = (100, 0, 0)
 temp30Color = (214, 113, 217)
-temp40Color = (140, 54, 186)
-temp50Color = (50, 40, 151)
-temp60Color = (5, 189, 230)
-temp70Color = (1, 210, 100)
-temp80Color = (120, 208, 3)
-temp90Color = (255, 250, 0)
-temp100Color = (255, 110, 0)
+temp40Color = (50, 40, 251)
+temp50Color = (5, 189, 230)
+temp60Color = (1, 210, 100)
+temp70Color = (120, 208, 3)
+temp80Color = (255, 250, 0)
+temp90Color = (255, 110, 0)
+temp100Color = (255, 10, 0)
 
 # TrueType fonts are a bit too much for the Pi to handle -- slow updates and
 # it's hard to get them looking good at small sizes.  A small bitmap version
@@ -48,6 +50,9 @@ image       = Image.new('RGB', (width, height))
 draw        = ImageDraw.Draw(image)
 currentTime = 0.0
 prevTime    = 0.0
+
+hour = int(time.strftime('%H'))
+nightMode = hour < 7 or hour >= 21
 
 # Clear matrix on exit.  Otherwise it's annoying if you need to break and
 # fiddle with some code while LEDs are blinding you.
@@ -87,14 +92,19 @@ class tile:
 		self.setText(text)
 		self.color = color
 
+	def update(self):
+		pass
+
 	def setText(self, text):
 		self.text = text
 
 	def draw(self):
+		self.update()
 		x     = self.x
 		label = str(self.text)
+		color = nightColor if nightMode else self.color
 		draw.text((x, self.y + fontYoffset), label, font=font,
-			fill=self.color)
+			fill=color)
 
 class temperatureTile(tile):
 	def __init__(self, x, y, temperature):
@@ -122,20 +132,26 @@ class temperatureForecastTile(temperatureTile):
 				weatherInfo.forecast['properties']['periods'][self.period]['temperature']
 				)
 
-	def draw(self):
-		self.update()
-		x     = self.x
-		label = str(self.text)
-		draw.text((x, self.y + fontYoffset), label, font=font,
-			fill=self.color)
-
 weatherInfo = weather((nws_region, gridpoint_lat, gridpoint_lon))
+
 tileList = [
 	temperatureForecastTile(0, 0, weatherInfo, 0),
 	temperatureForecastTile(24, 0, weatherInfo, 1),
-	temperatureForecastTile(48, 0, weatherInfo, 2)
+	temperatureForecastTile(48, 0, weatherInfo, 2),
 	]
 
+# tileList = [
+# 	temperatureTile( 0, 0, 20),
+# 	temperatureTile(24, 0, 30),
+# 	temperatureTile(48, 0, 40),
+# 	temperatureTile( 0, 12, 50),
+# 	temperatureTile(24, 12, 60),
+# 	temperatureTile(48, 12, 70),
+# 	temperatureTile( 0, 24, 80),
+# 	temperatureTile(24, 24, 90),
+# 	temperatureTile(48, 24, 100),
+# 	]
+ 
 # Initialization done; loop forever ------------------------------------------
 while True:
 
