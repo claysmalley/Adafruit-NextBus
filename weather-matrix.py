@@ -34,6 +34,7 @@ temp70Color = (120, 208, 3)
 temp80Color = (255, 250, 0)
 temp90Color = (255, 110, 0)
 temp100Color = (255, 10, 0)
+precipColor = (70, 70, 180)
 
 # TrueType fonts are a bit too much for the Pi to handle -- slow updates and
 # it's hard to get them looking good at small sizes.  A small bitmap version
@@ -123,6 +124,25 @@ class humidityForecastTile(tile):
 				self.weatherInfo.forecast['properties']['periods'][self.period]['relativeHumidity']['value']
 				)
 
+class precipitationForecastTile(tile):
+	def __init__(self, x, y, weatherInfo, color=precipColor, period=0):
+		self.weatherInfo = weatherInfo
+		self.period = period
+		super().__init__(x, y, None, color)
+
+	def update(self):
+		forecastPart = '??'
+		hourlyPart = '??'
+
+		if self.weatherInfo.forecast is not None:
+			forecastPart = self.weatherInfo.forecast['properties']['periods'][0]['probabilityOfPrecipitation']['value']
+		if self.weatherInfo.hourly is not None:
+			hourlyPart = self.weatherInfo.hourly['properties']['periods'][0]['probabilityOfPrecipitation']['value']
+
+		if forecastPart == 0 and hourlyPart == 0:
+			self.setText('no rain')
+		self.setText(''.join(('P ', str(forecastPart), '%, hr: ', str(hourlyPart), '%')))
+
 class temperatureTile(tile):
 	def __init__(self, x, y, temperature):
 		self.setText(temperature)
@@ -162,6 +182,7 @@ tileList = [
 	humidityForecastTile(19, 8, weatherInfo, period = 0),
 	humidityForecastTile(34, 8, weatherInfo, period = 1),
 	humidityForecastTile(49, 8, weatherInfo, period = 2),
+	precipitationForecastTile(0, 16, weatherInfo),
 	]
 
 # tileList = [
