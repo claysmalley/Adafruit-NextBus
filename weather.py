@@ -19,12 +19,18 @@ class weather:
 		self.forecast = None
 		self.hourly = None
 		self.lastQueryTime = time.time()
-		t = threading.Thread(target=self.thread)
-		t.daemon = True
-		t.start()
+		w = threading.Thread(target=self.weather_thread)
+		w.daemon = True
+		w.start()
+		f = threading.Thread(target=self.forecast_thread)
+		f.daemon = True
+		f.start()
+		h = threading.Thread(target=self.hourly_thread)
+		h.daemon = True
+		h.start()
 
-	# Periodically get forecast from server
-	def thread(self):
+	# Periodically get weather from server
+	def weather_thread(self):
 		initSleep = weather.initSleep
 		weather.initSleep += 5 # Thread staggering may
 		time.sleep(initSleep) # drift over time, no problem
@@ -33,10 +39,28 @@ class weather:
 			if weather_result is None: return # Connection error
 			self.weather = weather_result
 
+			self.lastQueryTime = time.time()
+			time.sleep(weather.interval)
+
+	# Periodically get forecast from server
+	def forecast_thread(self):
+		initSleep = weather.initSleep
+		weather.initSleep += 5 # Thread staggering may
+		time.sleep(initSleep) # drift over time, no problem
+		while True:
 			forecast_result = weather.req_forecast(self.data)
 			if forecast_result is None: return # Connection error
 			self.forecast = forecast_result
 
+			self.lastQueryTime = time.time()
+			time.sleep(weather.interval)
+
+	# Periodically get hourly forecast from server
+	def hourly_thread(self):
+		initSleep = weather.initSleep
+		weather.initSleep += 5 # Thread staggering may
+		time.sleep(initSleep) # drift over time, no problem
+		while True:
 			hourly_result = weather.req_hourly(self.data)
 			if hourly_result is None: return # Connection error
 			self.hourly = hourly_result

@@ -120,8 +120,8 @@ class humidityForecastTile(tile):
 		if self.weatherInfo.forecast is None:
 			self.setText(None)
 		else:
-			self.setText(
-				self.weatherInfo.forecast['properties']['periods'][self.period]['relativeHumidity']['value']
+			self.setText(''.join((
+				str(self.weatherInfo.forecast['properties']['periods'][self.period]['relativeHumidity']['value']), '%'))
 				)
 
 class precipitationForecastTile(tile):
@@ -141,7 +141,7 @@ class precipitationForecastTile(tile):
 
 		if forecastPart == 0 and hourlyPart == 0:
 			self.setText('no rain')
-		self.setText(''.join(('P ', str(forecastPart), '%, hr: ', str(hourlyPart), '%')))
+		self.setText(''.join((str(forecastPart), '%, hr: ', str(hourlyPart), '%')))
 
 class temperatureTile(tile):
 	def __init__(self, x, y, temperature):
@@ -175,14 +175,13 @@ weatherInfo = weather((nws_region, gridpoint_lat, gridpoint_lon))
 
 tileList = [
 	tile(0, 0, 'T'),
-	temperatureForecastTile(19, 0, weatherInfo, 0),
-	temperatureForecastTile(34, 0, weatherInfo, 1),
-	temperatureForecastTile(49, 0, weatherInfo, 2),
+	temperatureForecastTile(20, 0, weatherInfo, 0),
+	temperatureForecastTile(42, 0, weatherInfo, 1),
 	tile(0, 8, 'RH'),
-	humidityForecastTile(19, 8, weatherInfo, period = 0),
-	humidityForecastTile(34, 8, weatherInfo, period = 1),
-	humidityForecastTile(49, 8, weatherInfo, period = 2),
-	precipitationForecastTile(0, 16, weatherInfo),
+	humidityForecastTile(20, 8, weatherInfo, period = 0),
+	humidityForecastTile(42, 8, weatherInfo, period = 1),
+	tile(0, 16, 'P', color=precipColor),
+	precipitationForecastTile(12, 16, weatherInfo),
 	]
 
 # tileList = [
