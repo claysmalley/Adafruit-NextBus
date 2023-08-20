@@ -141,7 +141,8 @@ class precipitationForecastTile(tile):
 
 		if forecastPart == 0 and hourlyPart == 0:
 			self.setText('no rain')
-		self.setText(''.join((str(forecastPart), '%, hr: ', str(hourlyPart), '%')))
+		else:
+			self.setText(''.join((str(forecastPart), '%, hr: ', str(hourlyPart), '%')))
 
 class temperatureTile(tile):
 	def __init__(self, x, y, temperature):
@@ -180,7 +181,7 @@ tileList = [
 	tile(0, 8, 'RH'),
 	humidityForecastTile(20, 8, weatherInfo, period = 0),
 	humidityForecastTile(42, 8, weatherInfo, period = 1),
-	tile(0, 16, 'P', color=precipColor),
+	tile(0, 16, 'P'),
 	precipitationForecastTile(12, 16, weatherInfo),
 	]
 
