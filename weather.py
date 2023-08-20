@@ -57,7 +57,8 @@ class weather:
 		 ))
 		try:
 			connection = requests.get(url)
-			json_result = connection.json()
+			if connection.status_code == 200:
+				json_result = connection.json()
 		finally:
 			return json_result
 
@@ -75,7 +76,8 @@ class weather:
 		 ))
 		try:
 			connection = requests.get(url)
-			json_result = connection.json()
+			if connection.status_code == 200:
+				json_result = connection.json()
 		finally:
 			return json_result
 
@@ -93,7 +95,8 @@ class weather:
 		 ))
 		try:
 			connection = requests.get(url)
-			json_result = connection.json()
+			if connection.status_code == 200:
+				json_result = connection.json()
 		finally:
 			return json_result
 

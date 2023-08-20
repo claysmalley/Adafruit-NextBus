@@ -135,9 +135,9 @@ class precipitationForecastTile(tile):
 		hourlyPart = '??'
 
 		if self.weatherInfo.forecast is not None:
-			forecastPart = self.weatherInfo.forecast['properties']['periods'][0]['probabilityOfPrecipitation']['value']
+			forecastPart = self.weatherInfo.forecast['properties']['periods'][0]['probabilityOfPrecipitation']['value'] or 0
 		if self.weatherInfo.hourly is not None:
-			hourlyPart = self.weatherInfo.hourly['properties']['periods'][0]['probabilityOfPrecipitation']['value']
+			hourlyPart = self.weatherInfo.hourly['properties']['periods'][0]['probabilityOfPrecipitation']['value'] or 0
 
 		if forecastPart == 0 and hourlyPart == 0:
 			self.setText('no rain')
