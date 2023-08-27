@@ -11,7 +11,7 @@ import math
 import os
 import time
 from weather import weather
-from rgbmatrix import RGBMatrix
+from rgbmatrix import RGBMatrix, RGBMatrixOptions
 
 # Configurable stuff ---------------------------------------------------------
 
@@ -21,7 +21,9 @@ gridpoint_lon = '57'
 
 width          = 64  # Matrix size (pixels) -- change for different matrix
 height         = 32  # types (incl. tiling).  Other code may need tweaks.
-matrix         = RGBMatrix(32, 2) # rows, chain length
+matrixOptions = RGBMatrixOptions()
+matrixOptions.hardware_mapping = 'adafruit-hat'
+matrix         = RGBMatrix(32, 2, options = matrixOptions) # rows, chain length
 fps            = 20  # Scrolling speed (ish)
 
 labelColor     = (127, 127, 127)
@@ -34,7 +36,7 @@ temp70Color = (120, 208, 3)
 temp80Color = (255, 250, 0)
 temp90Color = (255, 110, 0)
 temp100Color = (255, 10, 0)
-precipColor = (70, 70, 180)
+precipColor = (110, 110, 240)
 
 # TrueType fonts are a bit too much for the Pi to handle -- slow updates and
 # it's hard to get them looking good at small sizes.  A small bitmap version
@@ -132,17 +134,25 @@ class precipitationForecastTile(tile):
 
 	def update(self):
 		forecastPart = '??'
-		hourlyPart = '??'
 
 		if self.weatherInfo.forecast is not None:
 			forecastPart = self.weatherInfo.forecast['properties']['periods'][0]['probabilityOfPrecipitation']['value'] or 0
+
+		self.setText(''.join((str(forecastPart), '%')))
+
+class precipitationHourlyTile(tile):
+	def __init__(self, x, y, weatherInfo, color=precipColor, period=0):
+		self.weatherInfo = weatherInfo
+		self.period = period
+		super().__init__(x, y, None, color)
+
+	def update(self):
+		hourlyPart = '??'
+
 		if self.weatherInfo.hourly is not None:
 			hourlyPart = self.weatherInfo.hourly['properties']['periods'][0]['probabilityOfPrecipitation']['value'] or 0
 
-		if forecastPart == 0 and hourlyPart == 0:
-			self.setText('no rain')
-		else:
-			self.setText(''.join((str(forecastPart), '%, hr: ', str(hourlyPart), '%')))
+		self.setText(''.join(('(', str(hourlyPart), '%)')))
 
 class temperatureTile(tile):
 	def __init__(self, x, y, temperature):
@@ -182,7 +192,8 @@ tileList = [
 	humidityForecastTile(20, 8, weatherInfo, period = 0),
 	humidityForecastTile(42, 8, weatherInfo, period = 1),
 	tile(0, 16, 'P'),
-	precipitationForecastTile(12, 16, weatherInfo),
+	precipitationForecastTile(20, 16, weatherInfo),
+	precipitationHourlyTile(39, 16, weatherInfo),
 	]
 
 # tileList = [
