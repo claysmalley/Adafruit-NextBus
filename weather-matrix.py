@@ -55,6 +55,9 @@ prevTime    = 0.0
 hour = int(time.strftime('%H'))
 nightMode = hour < 7 or hour >= 21
 
+commaWidth = 2
+digitWidth = 5
+
 # Clear matrix on exit.  Otherwise it's annoying if you need to break and
 # fiddle with some code while LEDs are blinding you.
 def clearOnExit():
@@ -193,16 +196,31 @@ class predictionTile(tile):
 	def __init__(self, x, y, predictions, walkTime=0):
 		self.x = x
 		self.y = y
+		self.color = labelColor
+		self.predictions = predictions
 		self.walkTime = walkTime
-		self.setText(predictions)
+		self.setText()
 
-	def setText(self, predictions):
-		if len(predictions) == 0:
-			self.color = labelColor
-			self.text = '--'
+	def setText(self):
+		self.text = None
+
+	def draw(self):
+		self.update()
+		x     = self.x
+		if len(self.predictions) == 0:
+			label = '--'
+			color = nightColor if nightMode else self.color
+			draw.text((x, self.y + fontYoffset), label, font=font, fill=color)
 		else:
-			self.color = colorFromMinutes(predictions[0], self.walkTime)
-			self.text = ','.join((str(prediction) for prediction in predictions))
+			for index, prediction in enumerate(self.predictions):
+				label = str(prediction)
+				color = nightColor if nightMode else colorFromMinutes(prediction, self.walkTime)
+				draw.text((x, self.y + fontYoffset), label, font=font, fill=color)
+				x += digitWidth * len(label)
+				color = nightColor if nightMode else self.color
+				if index != len(self.predictions) - 1:
+					draw.text((x, self.y + fontYoffset), ',', font=font, fill=color)
+					x += commaWidth
 
 weatherInfo = weather()
 
@@ -213,7 +231,6 @@ tileList = [
 	tile(0, 8, 'P'),
 	precipitationForecastTile(20, 8, weatherInfo),
 	precipitationHourlyTile(39, 8, weatherInfo),
-	# predictionTile(5, 16, (6, 8), 3),
 	]
  
 # Initialization done; loop forever ------------------------------------------
