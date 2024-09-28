@@ -33,6 +33,8 @@ temp80Color = (255, 250, 0)
 temp90Color = (255, 110, 0)
 temp100Color = (255, 10, 0)
 precipColor = (110, 110, 240)
+leaveNowColor = (255, 10, 0)
+leaveSoonColor = (255, 250, 0)
 
 # TrueType fonts are a bit too much for the Pi to handle -- slow updates and
 # it's hard to get them looking good at small sizes.  A small bitmap version
@@ -82,6 +84,15 @@ def colorFromFahrenheit(temperature):
 		color = temp90Color
 	elif colorSwitch == 10:
 		color = temp100Color
+	return color
+
+def colorFromMinutes(prediction, walkTime):
+	whenToLeave = prediction - walkTime
+	color = labelColor
+	if whenToLeave < 15:
+		color = leaveSoonColor
+	if whenToLeave < 5:
+		color = leaveNowColor
 	return color
 
 class tile:
@@ -178,6 +189,21 @@ class temperatureForecastTile(temperatureTile):
 				self.weatherInfo.forecast['properties']['periods'][self.period]['temperature']
 				)
 
+class predictionTile(tile):
+	def __init__(self, x, y, predictions, walkTime=0):
+		self.x = x
+		self.y = y
+		self.walkTime = walkTime
+		self.setText(predictions)
+
+	def setText(self, predictions):
+		if len(predictions) == 0:
+			self.color = labelColor
+			self.text = '--'
+		else:
+			self.color = colorFromMinutes(predictions[0], self.walkTime)
+			self.text = ','.join((str(prediction) for prediction in predictions))
+
 weatherInfo = weather()
 
 tileList = [
@@ -187,19 +213,8 @@ tileList = [
 	tile(0, 8, 'P'),
 	precipitationForecastTile(20, 8, weatherInfo),
 	precipitationHourlyTile(39, 8, weatherInfo),
+	# predictionTile(5, 16, (6, 8), 3),
 	]
-
-# tileList = [
-# 	temperatureTile( 0, 0, 20),
-# 	temperatureTile(24, 0, 30),
-# 	temperatureTile(48, 0, 40),
-# 	temperatureTile( 0, 12, 50),
-# 	temperatureTile(24, 12, 60),
-# 	temperatureTile(48, 12, 70),
-# 	temperatureTile( 0, 24, 80),
-# 	temperatureTile(24, 24, 90),
-# 	temperatureTile(48, 24, 100),
-# 	]
  
 # Initialization done; loop forever ------------------------------------------
 while True:
