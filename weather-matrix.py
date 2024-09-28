@@ -15,10 +15,6 @@ from rgbmatrix import RGBMatrix, RGBMatrixOptions
 
 # Configurable stuff ---------------------------------------------------------
 
-nws_region = 'LOT'
-gridpoint_lat = '74'
-gridpoint_lon = '77'
-
 width          = 64  # Matrix size (pixels) -- change for different matrix
 height         = 32  # types (incl. tiling).  Other code may need tweaks.
 matrixOptions = RGBMatrixOptions()
@@ -182,7 +178,7 @@ class temperatureForecastTile(temperatureTile):
 				self.weatherInfo.forecast['properties']['periods'][self.period]['temperature']
 				)
 
-weatherInfo = weather((nws_region, gridpoint_lat, gridpoint_lon))
+weatherInfo = weather()
 
 tileList = [
 	tile(0, 0, 'T'),
