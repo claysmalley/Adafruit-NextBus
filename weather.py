@@ -1,12 +1,14 @@
 import threading
 import time
 import requests
+import http.client
 import json
 from pathlib import Path
 
 class weather:
 	interval = 120 # Default polling interval = 2 minutes
 	initSleep = 0 # Stagger polling threads to avoid load spikes
+	threadStagger = 5
 	config = {}
 	with open(Path(__file__).with_name('config.json')) as config_file:
 		config = json.load(config_file)
@@ -40,8 +42,8 @@ class weather:
 	# Periodically get weather from server
 	def weather_thread(self):
 		initSleep = weather.initSleep
-		weather.initSleep += 5 # Thread staggering may
-		time.sleep(initSleep) # drift over time, no problem
+		weather.initSleep += weather.threadStagger
+		time.sleep(initSleep)
 		while True:
 			weather_result = weather.req_weather()
 			if weather_result is None: return # Connection error
@@ -53,8 +55,8 @@ class weather:
 	# Periodically get forecast from server
 	def forecast_thread(self):
 		initSleep = weather.initSleep
-		weather.initSleep += 5 # Thread staggering may
-		time.sleep(initSleep) # drift over time, no problem
+		weather.initSleep += weather.threadStagger
+		time.sleep(initSleep)
 		while True:
 			forecast_result = weather.req_forecast()
 			if forecast_result is None: return # Connection error
@@ -66,8 +68,8 @@ class weather:
 	# Periodically get hourly forecast from server
 	def hourly_thread(self):
 		initSleep = weather.initSleep
-		weather.initSleep += 5 # Thread staggering may
-		time.sleep(initSleep) # drift over time, no problem
+		weather.initSleep += weather.threadStagger
+		time.sleep(initSleep)
 		while True:
 			hourly_result = weather.req_hourly()
 			if hourly_result is None: return # Connection error
@@ -79,8 +81,8 @@ class weather:
 	# Periodically get bus predictions from server
 	def bus_thread(self):
 		initSleep = weather.initSleep
-		weather.initSleep += 5 # Thread staggering may
-		time.sleep(initSleep) # drift over time, no problem
+		weather.initSleep += weather.threadStagger
+		time.sleep(initSleep)
 		while True:
 			bus_result = weather.req_bus()
 			if bus_result is None: return # Connection error
@@ -92,8 +94,8 @@ class weather:
 	# Periodically get train predictions from server
 	def train_thread(self):
 		initSleep = weather.initSleep
-		weather.initSleep += 5 # Thread staggering may
-		time.sleep(initSleep) # drift over time, no problem
+		weather.initSleep += weather.threadStagger
+		time.sleep(initSleep)
 		while True:
 			train_result = weather.req_train()
 			if train_result is None: return # Connection error
@@ -161,16 +163,20 @@ class weather:
 	@staticmethod
 	def req_bus():
 		json_result = None
-		url = ''.join((
-		 'https://www.ctabustracker.com/bustime/api/v2/getpredictions?format=json&key=',
+		host = 'www.ctabustracker.com'
+		path = ''.join((
+		 '/bustime/api/v2/getpredictions?format=json&key=',
 		 weather.config['CTA_BUS_API_KEY'],
 		 '&stpid=',
 		 weather.config['CTA_BUS_STOPS']
 		 ))
+		userAgent = 'curl/7.74.0'
 		try:
-			connection = requests.get(url)
-			if connection.status_code == 200:
-				json_result = connection.json()
+			connection = http.client.HTTPSConnection(host)
+			connection.request('GET', path)
+			r1 = connection.getresponse()
+			if r1.status == 200:
+				json_result = json.loads(r1.read())
 		finally:
 			return json_result
 
@@ -181,7 +187,7 @@ class weather:
 		 'https://lapi.transitchicago.com/api/1.0/ttarrivals.aspx?outputType=JSON&key=',
 		 weather.config['CTA_TRAIN_API_KEY'],
 		 '&mapid=',
-		 weather.config['CTA_TRAIN_STOPS']
+		 weather.config['CTA_TRAIN_STATION']
 		 ))
 		try:
 			connection = requests.get(url)

@@ -26,7 +26,7 @@ height         = 32  # types (incl. tiling).  Other code may need tweaks.
 matrixOptions = RGBMatrixOptions()
 matrixOptions.hardware_mapping = 'adafruit-hat'
 matrix         = RGBMatrix(32, 2, options = matrixOptions) # rows, chain length
-fps            = 20  # Scrolling speed (ish)
+fps            = 5  # Scrolling speed (ish)
 
 labelColor     = (127, 127, 127)
 nightColor     = (100, 0, 0)
