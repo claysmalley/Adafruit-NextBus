@@ -10,8 +10,14 @@ from PIL import ImageFont
 import math
 import os
 import time
+import json
+from pathlib import Path
 from weather import weather
 from rgbmatrix import RGBMatrix, RGBMatrixOptions
+
+config = {}
+with open(Path(__file__).with_name('config.json')) as config_file:
+	config = json.load(config_file)
 
 # Configurable stuff ---------------------------------------------------------
 
@@ -197,9 +203,12 @@ class predictionTile(tile):
 		self.x = x
 		self.y = y
 		self.color = labelColor
-		self.predictions = predictions
 		self.walkTime = walkTime
+		self.setPredictions(predictions)
 		self.setText()
+
+	def setPredictions(self, predictions):
+		self.predictions = list(filter(lambda prediction: prediction - self.walkTime > 0, predictions))
 
 	def setText(self):
 		self.text = None
@@ -222,16 +231,32 @@ class predictionTile(tile):
 					draw.text((x, self.y + fontYoffset), ',', font=font, fill=color)
 					x += commaWidth
 
+class ctaBusPredictionTile(predictionTile):
+	def __init__(self, tileInfo):
+		self.weatherInfo = weatherInfo
+		self.rt = tileInfo['rt']
+		self.stpid = tileInfo['stpid']
+		super().__init__(tileInfo['x'], tileInfo['y'], (), tileInfo['walkTime'])
+	
+	def update(self):
+		if self.weatherInfo.bus is None:
+			self.setPredictions([])
+		else:
+			# TODO: iterate through self.weatherInfo.bus and set predictions
+			self.setPredictions([])
+
 weatherInfo = weather()
 
 tileList = [
-	tile(0, 0, 'T'),
-	temperatureForecastTile(20, 0, weatherInfo, 0),
+	tile(1, 0, 'T'),
+	temperatureForecastTile(16, 0, weatherInfo, 0),
 	temperatureForecastTile(42, 0, weatherInfo, 1),
 	tile(0, 8, 'P'),
-	precipitationForecastTile(20, 8, weatherInfo),
+	precipitationForecastTile(16, 8, weatherInfo),
 	precipitationHourlyTile(39, 8, weatherInfo),
 	]
+for tileInfo in config["CTA_BUS_TILES"]:
+	tileList += [ctaBusPredictionTile(tileInfo)]
  
 # Initialization done; loop forever ------------------------------------------
 while True:

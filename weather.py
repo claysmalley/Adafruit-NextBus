@@ -18,6 +18,8 @@ class weather:
 		self.weather = None
 		self.forecast = None
 		self.hourly = None
+		self.bus = None
+		self.train = None
 		self.lastQueryTime = time.time()
 		w = threading.Thread(target=self.weather_thread)
 		w.daemon = True
@@ -28,6 +30,12 @@ class weather:
 		h = threading.Thread(target=self.hourly_thread)
 		h.daemon = True
 		h.start()
+		b = threading.Thread(target=self.bus_thread)
+		b.daemon = True
+		b.start()
+		t = threading.Thread(target=self.train_thread)
+		t.daemon = True
+		t.start()
 
 	# Periodically get weather from server
 	def weather_thread(self):
