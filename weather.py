@@ -2,12 +2,13 @@ import threading
 import time
 import requests
 import json
+from pathlib import Path
 
 class weather:
 	interval = 120 # Default polling interval = 2 minutes
 	initSleep = 0 # Stagger polling threads to avoid load spikes
 	config = {}
-	with open('config.json') as config_file:
+	with open(Path(__file__).with_name('config.json')) as config_file:
 		config = json.load(config_file)
 	
 	# Each object spawns its own thread and will perform
