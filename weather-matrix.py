@@ -15,9 +15,9 @@ from rgbmatrix import RGBMatrix, RGBMatrixOptions
 
 # Configurable stuff ---------------------------------------------------------
 
-nws_region = 'RAH'
-gridpoint_lat = '75'
-gridpoint_lon = '57'
+nws_region = 'LOT'
+gridpoint_lat = '74'
+gridpoint_lon = '77'
 
 width          = 64  # Matrix size (pixels) -- change for different matrix
 height         = 32  # types (incl. tiling).  Other code may need tweaks.
@@ -188,12 +188,9 @@ tileList = [
 	tile(0, 0, 'T'),
 	temperatureForecastTile(20, 0, weatherInfo, 0),
 	temperatureForecastTile(42, 0, weatherInfo, 1),
-	tile(0, 8, 'RH'),
-	humidityForecastTile(20, 8, weatherInfo, period = 0),
-	humidityForecastTile(42, 8, weatherInfo, period = 1),
-	tile(0, 16, 'P'),
-	precipitationForecastTile(20, 16, weatherInfo),
-	precipitationHourlyTile(39, 16, weatherInfo),
+	tile(0, 8, 'P'),
+	precipitationForecastTile(20, 8, weatherInfo),
+	precipitationHourlyTile(39, 8, weatherInfo),
 	]
 
 # tileList = [
