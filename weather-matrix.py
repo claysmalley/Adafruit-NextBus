@@ -242,8 +242,9 @@ class ctaBusPredictionTile(predictionTile):
 		if self.weatherInfo.bus is None:
 			self.setPredictions([])
 		else:
-			# TODO: iterate through self.weatherInfo.bus and set predictions
-			self.setPredictions([])
+			response = list(filter(lambda item: item['rt'] == self.rt and item['stpid'] == self.stpid, self.weatherInfo.bus['bustime-response']['prd']))
+			predictions = map(lambda item: int(item['prdctdn'].replace('DUE', '1')), response)
+			self.setPredictions(predictions)
 
 class ctaTrainPredictionTile(predictionTile):
 	def __init__(self, tileInfo):
