@@ -23,6 +23,12 @@ class weather:
 		self.bus = None
 		self.train = None
 		self.lastQueryTime = time.time()
+		t = threading.Thread(target=self.train_thread)
+		t.daemon = True
+		t.start()
+		b = threading.Thread(target=self.bus_thread)
+		b.daemon = True
+		b.start()
 		w = threading.Thread(target=self.weather_thread)
 		w.daemon = True
 		w.start()
@@ -32,12 +38,6 @@ class weather:
 		h = threading.Thread(target=self.hourly_thread)
 		h.daemon = True
 		h.start()
-		b = threading.Thread(target=self.bus_thread)
-		b.daemon = True
-		b.start()
-		t = threading.Thread(target=self.train_thread)
-		t.daemon = True
-		t.start()
 
 	# Periodically get weather from server
 	def weather_thread(self):
@@ -170,7 +170,6 @@ class weather:
 		 '&stpid=',
 		 weather.config['CTA_BUS_STOPS']
 		 ))
-		userAgent = 'curl/7.74.0'
 		try:
 			connection = http.client.HTTPSConnection(host)
 			connection.request('GET', path)
@@ -183,16 +182,19 @@ class weather:
 	@staticmethod
 	def req_train():
 		json_result = None
-		url = ''.join((
-		 'https://lapi.transitchicago.com/api/1.0/ttarrivals.aspx?outputType=JSON&key=',
+		host = 'lapi.transitchicago.com'
+		path = ''.join((
+		 '/api/1.0/ttarrivals.aspx?outputType=JSON&key=',
 		 weather.config['CTA_TRAIN_API_KEY'],
 		 '&mapid=',
 		 weather.config['CTA_TRAIN_STATION']
 		 ))
+		connection = http.client.HTTPSConnection(host)
+		connection.request('GET', path)
 		try:
-			connection = requests.get(url)
-			if connection.status_code == 200:
-				json_result = connection.json()
+			r1 = connection.getresponse()
+			if r1.status == 200:
+				json_result = json.loads(r1.read())
 		finally:
 			return json_result
 

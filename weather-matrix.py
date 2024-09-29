@@ -10,6 +10,7 @@ from PIL import ImageFont
 import math
 import os
 import time
+from datetime import datetime
 import json
 from pathlib import Path
 from weather import weather
@@ -243,6 +244,7 @@ class ctaBusPredictionTile(predictionTile):
 			self.setPredictions([])
 		else:
 			response = list(filter(lambda item: item['rt'] == self.rt and item['stpid'] == self.stpid, self.weatherInfo.bus['bustime-response']['prd']))
+			# TODO handle 'DLY'
 			predictions = map(lambda item: int(item['prdctdn'].replace('DUE', '1')), response)
 			self.setPredictions(predictions)
 
@@ -257,8 +259,14 @@ class ctaTrainPredictionTile(predictionTile):
 		if self.weatherInfo.train is None:
 			self.setPredictions([])
 		else:
-			# TODO: iterate through self.weatherInfo.train and set predictions
-			self.setPredictions([])
+			now = datetime.now()
+			response = list(filter(lambda item: item['rt'] == self.rt and item['stpId'] == self.stpId, self.weatherInfo.train['ctatt']['eta']))
+			predictions = []
+			for item in response:
+				timediff = datetime.strptime(item['arrT'], '%Y-%m-%dT%H:%M:%S') - now
+				if timediff.days >= 0:
+					predictions += [int(timediff.seconds // 60)]
+			self.setPredictions(predictions)
 
 weatherInfo = weather()
 
