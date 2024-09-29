@@ -245,6 +245,20 @@ class ctaBusPredictionTile(predictionTile):
 			# TODO: iterate through self.weatherInfo.bus and set predictions
 			self.setPredictions([])
 
+class ctaTrainPredictionTile(predictionTile):
+	def __init__(self, tileInfo):
+		self.weatherInfo = weatherInfo
+		self.rt = tileInfo['rt']
+		self.stpId = tileInfo['stpId']
+		super().__init__(tileInfo['x'], tileInfo['y'], (), tileInfo['walkTime'])
+	
+	def update(self):
+		if self.weatherInfo.train is None:
+			self.setPredictions([])
+		else:
+			# TODO: iterate through self.weatherInfo.train and set predictions
+			self.setPredictions([])
+
 weatherInfo = weather()
 
 tileList = [
@@ -254,7 +268,11 @@ tileList = [
 	tile(0, 8, 'P'),
 	precipitationForecastTile(16, 8, weatherInfo),
 	precipitationHourlyTile(39, 8, weatherInfo),
+	tile(0, 16, 'RL'),
+	tile(0, 24, '147'),
 	]
+for tileInfo in config["CTA_TRAIN_TILES"]:
+	tileList += [ctaTrainPredictionTile(tileInfo)]
 for tileInfo in config["CTA_BUS_TILES"]:
 	tileList += [ctaBusPredictionTile(tileInfo)]
  

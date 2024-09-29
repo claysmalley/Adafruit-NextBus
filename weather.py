@@ -189,11 +189,13 @@ class weather:
 		 '&mapid=',
 		 weather.config['CTA_TRAIN_STATION']
 		 ))
+		print(url)
 		try:
 			connection = requests.get(url)
 			if connection.status_code == 200:
 				json_result = connection.json()
 		finally:
+			print(json_result)
 			return json_result
 
 	# Set polling interval (seconds)
