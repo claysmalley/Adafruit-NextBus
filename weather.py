@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 
 class weather:
-	interval = 120 # Default polling interval = 2 minutes
+	interval = 30 # Polling interval in seconds
 	initSleep = 0 # Stagger polling threads to avoid load spikes
 	threadStagger = 5
 	config = {}
