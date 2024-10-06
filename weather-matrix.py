@@ -169,7 +169,7 @@ class precipitationHourlyTile(tile):
 		if self.weatherInfo.hourly is not None:
 			hourlyPart = self.weatherInfo.hourly['properties']['periods'][0]['probabilityOfPrecipitation']['value'] or 0
 
-		self.setText(''.join(('(', str(hourlyPart), '%)')))
+		self.setText(''.join((str(hourlyPart), '%')))
 
 class temperatureTile(tile):
 	def __init__(self, x, y, temperature):
@@ -275,14 +275,15 @@ class ctaTrainPredictionTile(predictionTile):
 weatherInfo = weather()
 
 tileList = [
-	tile(1, 0, 'T'),
-	temperatureForecastTile(16, 0, weatherInfo, 0),
-	temperatureForecastTile(42, 0, weatherInfo, 1),
-	tile(0, 8, 'P'),
-	precipitationForecastTile(16, 8, weatherInfo),
-	precipitationHourlyTile(39, 8, weatherInfo),
-	tile(0, 16, 'RL'),
-	tile(0, 24, '147'),
+	tile(-1, 4, 'T'),
+	temperatureForecastTile(6, 0, weatherInfo, 0),
+	temperatureForecastTile(6, 8, weatherInfo, 1),
+	tile(24, 0, 'P(h)'),
+	precipitationHourlyTile(42, 0, weatherInfo),
+	tile(24, 8, 'P(d)'),
+	precipitationForecastTile(42, 8, weatherInfo),
+	tile(-2, 16, 'RL'),
+	tile(-2, 24, '147'),
 	]
 for tileInfo in config["CTA_TRAIN_TILES"]:
 	tileList += [ctaTrainPredictionTile(tileInfo)]
