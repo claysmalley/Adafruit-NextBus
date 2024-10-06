@@ -243,9 +243,13 @@ class ctaBusPredictionTile(predictionTile):
 		if self.weatherInfo.bus is None:
 			self.setPredictions([])
 		else:
+			now = datetime.now()
 			response = list(filter(lambda item: item['rt'] == self.rt and item['stpid'] == self.stpid, self.weatherInfo.bus['bustime-response']['prd']))
-			# TODO handle 'DLY'
-			predictions = map(lambda item: int(item['prdctdn'].replace('DUE', '1')), response)
+			predictions = []
+			for item in response:
+				timediff = datetime.strptime(item['prdtm'], '%Y%m%d %H:%M') - now
+				if timediff.days >= 0:
+					predictions += [int(timediff.seconds // 60)]
 			self.setPredictions(predictions)
 
 class ctaTrainPredictionTile(predictionTile):
