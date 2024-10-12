@@ -29,9 +29,9 @@ class weather:
 		b = threading.Thread(target=self.bus_thread)
 		b.daemon = True
 		b.start()
-		w = threading.Thread(target=self.weather_thread)
-		w.daemon = True
-		w.start()
+		# w = threading.Thread(target=self.weather_thread)
+		# w.daemon = True
+		# w.start()
 		f = threading.Thread(target=self.forecast_thread)
 		f.daemon = True
 		f.start()
